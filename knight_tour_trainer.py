@@ -193,7 +193,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="work with the tour in reverse order",
     )
 
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="command")
 
     show_parser = subparsers.add_parser("show", help="print the move list")
     show_parser.add_argument(
@@ -221,15 +221,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     forward_tour = generate_knights_tour()
     path = reversed_tour(forward_tour) if args.reverse else forward_tour
 
-    if args.command == "show":
-        _print_sequence(path, args.steps, sys.stdout)
+    command = args.command or "board"
+    steps = getattr(args, "steps", None)
+
+    if command == "show":
+        _print_sequence(path, steps, sys.stdout)
         return 0
 
-    if args.command == "board":
-        print(format_board(path, args.steps))
+    if command == "board":
+        print(format_board(path, steps))
         return 0
 
-    if args.command == "quiz":
+    if command == "quiz":
         _run_quiz(path)
         return 0
 

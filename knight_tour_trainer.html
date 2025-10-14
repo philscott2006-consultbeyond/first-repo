@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Knight's Tour Memory Trainer</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+      }
+
+      body {
+        margin: 0;
+        padding: 1.5rem;
+        background: #f6f7fb;
+        color: #1f2937;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin-top: 0;
+      }
+
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        padding: 1.5rem;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        border: 4px solid #111827;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+      }
+
+      .board-square {
+        display: grid;
+        place-items: center;
+        font-size: clamp(0.85rem, 1.2vw + 0.6rem, 1.5rem);
+        font-weight: 600;
+        transition: background-color 0.2s ease, color 0.2s ease;
+      }
+
+      .board-square.light {
+        background: #f9fafb;
+      }
+
+      .board-square.dark {
+        background: #1f2937;
+        color: #f9fafb;
+      }
+
+      .board-square.visited {
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: #1f2937;
+      }
+
+      .board-square.current {
+        background: linear-gradient(135deg, #6366f1, #7c3aed);
+        color: white;
+        box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6);
+      }
+
+      fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .slider-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .step-buttons {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      button,
+      input[type="submit"] {
+        font: inherit;
+        cursor: pointer;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: white;
+        padding: 0.6rem 1.1rem;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      button:hover,
+      input[type="submit"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px rgba(37, 99, 235, 0.3);
+      }
+
+      button:disabled,
+      input[type="submit"]:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .move-list {
+        max-height: 340px;
+        overflow-y: auto;
+        margin: 0;
+        padding-left: 1.5rem;
+      }
+
+      .move-list li {
+        padding: 0.2rem 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .status {
+        font-weight: 600;
+        color: #2563eb;
+      }
+
+      .quiz-inputs {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      .quiz-inputs input[type="text"] {
+        flex: 1;
+        padding: 0.55rem 0.75rem;
+        font: inherit;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+      }
+
+      .quiz-log {
+        margin-top: 0.75rem;
+        max-height: 180px;
+        overflow-y: auto;
+        font-family: "Cascadia Code", "Fira Code", monospace;
+        background: rgba(99, 102, 241, 0.08);
+        padding: 0.75rem;
+        border-radius: 10px;
+      }
+
+      .quiz-log p {
+        margin: 0 0 0.35rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #0f172a;
+          color: #e2e8f0;
+        }
+
+        .card {
+          background: #111827;
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.45);
+        }
+
+        .board {
+          border-color: #e2e8f0;
+        }
+
+        .board-square.light {
+          background: #1f2937;
+        }
+
+        .board-square.dark {
+          background: #0f172a;
+        }
+
+        .move-list {
+          scrollbar-color: #6366f1 rgba(148, 163, 184, 0.25);
+        }
+
+        .quiz-inputs input[type="text"] {
+          background: #0f172a;
+          border-color: #374151;
+          color: inherit;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Knight's Tour Memory Trainer</h1>
+        <p>
+          Explore a deterministic Knight's Tour, study the reverse order, and practise
+          your recall directly in the browser. Use the controls below to step through
+          the journey, view each square in algebraic notation, and test yourself with
+          a lightweight quiz.
+        </p>
+      </header>
+
+      <section class="layout" aria-label="Trainer">
+        <article class="card">
+          <h2>Visual Board</h2>
+          <div id="board" class="board" aria-label="Chess board"></div>
+        </article>
+
+        <article class="card">
+          <h2>Tour Controls</h2>
+          <div class="controls">
+            <fieldset>
+              <legend>Direction</legend>
+              <label>
+                <input type="radio" name="direction" value="forward" checked />
+                Forward (start to finish)
+              </label>
+              <label>
+                <input type="radio" name="direction" value="reverse" />
+                Reverse (finish to start)
+              </label>
+            </fieldset>
+
+            <div class="slider-group">
+              <label for="stepRange">
+                Steps shown: <span id="stepCount">0</span> / <span id="stepTotal">64</span>
+              </label>
+              <input type="range" id="stepRange" min="0" max="64" value="0" />
+              <div class="step-buttons">
+                <button type="button" id="stepBack">◀ Previous</button>
+                <button type="button" id="stepForward">Next ▶</button>
+              </div>
+            </div>
+
+            <div>
+              <h3>Move List</h3>
+              <ol id="moveList" class="move-list" aria-live="polite"></ol>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Recall Quiz</h2>
+          <p>
+            Work through each move in order. Type the square in algebraic notation
+            (for example, <strong>e4</strong>). Enter <code>quit</code> to end early.
+          </p>
+          <button type="button" id="startQuiz">Start Quiz</button>
+          <div id="quizPanel" hidden>
+            <p class="status" id="quizPrompt">Press start to begin.</p>
+            <form id="quizForm" class="quiz-inputs">
+              <label class="sr-only" for="quizAnswer">Your answer</label>
+              <input
+                id="quizAnswer"
+                type="text"
+                name="answer"
+                minlength="2"
+                maxlength="2"
+                autocomplete="off"
+                inputmode="text"
+                placeholder="e4"
+                required
+              />
+              <input type="submit" value="Submit" />
+              <button type="button" id="endQuiz">Finish</button>
+            </form>
+            <div id="quizLog" class="quiz-log" aria-live="polite"></div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const BOARD_SIZE = 8;
+      const START = Object.freeze({ row: 0, col: 0 });
+      const OFFSETS = [
+        { row: 2, col: 1 },
+        { row: 1, col: 2 },
+        { row: -1, col: 2 },
+        { row: -2, col: 1 },
+        { row: -2, col: -1 },
+        { row: -1, col: -2 },
+        { row: 1, col: -2 },
+        { row: 2, col: -1 },
+      ];
+
+      const boardElement = document.getElementById("board");
+      const moveList = document.getElementById("moveList");
+      const stepRange = document.getElementById("stepRange");
+      const stepCount = document.getElementById("stepCount");
+      const stepTotal = document.getElementById("stepTotal");
+      const stepBackButton = document.getElementById("stepBack");
+      const stepForwardButton = document.getElementById("stepForward");
+      const startQuizButton = document.getElementById("startQuiz");
+      const endQuizButton = document.getElementById("endQuiz");
+      const quizPanel = document.getElementById("quizPanel");
+      const quizPrompt = document.getElementById("quizPrompt");
+      const quizForm = document.getElementById("quizForm");
+      const quizAnswer = document.getElementById("quizAnswer");
+      const quizLog = document.getElementById("quizLog");
+
+      let forwardTour = [];
+      let reverseTour = [];
+      let currentSteps = 0;
+      let useReverse = false;
+      let quizActive = false;
+      let quizIndex = 0;
+      let quizScore = 0;
+
+      function isOnBoard(row, col) {
+        return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
+      }
+
+      function knightMoves(row, col) {
+        return OFFSETS.map((offset) => ({ row: row + offset.row, col: col + offset.col }));
+      }
+
+      function countOnwardMoves(move, visited) {
+        return knightMoves(move.row, move.col).filter(
+          (next) => isOnBoard(next.row, next.col) && !visited.has(key(next))
+        ).length;
+      }
+
+      function key(move) {
+        return `${move.row},${move.col}`;
+      }
+
+      function generateTour(start = START) {
+        const path = [start];
+        const visited = new Set([key(start)]);
+
+        for (let i = 0; i < BOARD_SIZE * BOARD_SIZE - 1; i += 1) {
+          const current = path[path.length - 1];
+          const candidates = knightMoves(current.row, current.col).filter((move) =>
+            isOnBoard(move.row, move.col) && !visited.has(key(move))
+          );
+
+          if (candidates.length === 0) {
+            throw new Error("Failed to construct a full Knight's Tour path");
+          }
+
+          candidates.sort((a, b) => {
+            const onwardA = countOnwardMoves(a, visited);
+            const onwardB = countOnwardMoves(b, visited);
+            if (onwardA !== onwardB) {
+              return onwardA - onwardB;
+            }
+            if (a.row !== b.row) {
+              return a.row - b.row;
+            }
+            return a.col - b.col;
+          });
+
+          const nextMove = candidates[0];
+          visited.add(key(nextMove));
+          path.push(nextMove);
+        }
+
+        if (path.length !== BOARD_SIZE * BOARD_SIZE) {
+          throw new Error("The generated path is incomplete.");
+        }
+
+        return path;
+      }
+
+      function algebraic(move) {
+        const file = String.fromCharCode("a".charCodeAt(0) + move.col);
+        return `${file}${move.row + 1}`;
+      }
+
+      function createBoard() {
+        boardElement.innerHTML = "";
+        for (let row = BOARD_SIZE - 1; row >= 0; row -= 1) {
+          for (let col = 0; col < BOARD_SIZE; col += 1) {
+            const square = document.createElement("div");
+            square.classList.add("board-square", (row + col) % 2 === 0 ? "light" : "dark");
+            square.dataset.row = String(row);
+            square.dataset.col = String(col);
+            square.setAttribute(
+              "aria-label",
+              `Rank ${row + 1}, file ${String.fromCharCode("a".charCodeAt(0) + col)}`
+            );
+            boardElement.appendChild(square);
+          }
+        }
+      }
+
+      function updateBoard() {
+        const path = getActivePath();
+        const squares = boardElement.querySelectorAll(".board-square");
+        squares.forEach((square) => {
+          square.textContent = "";
+          square.classList.remove("visited", "current");
+        });
+
+        for (let i = 0; i < currentSteps; i += 1) {
+          const move = path[i];
+          const selector = `.board-square[data-row="${move.row}"][data-col="${move.col}"]`;
+          const square = boardElement.querySelector(selector);
+          if (!square) continue;
+          square.textContent = i + 1;
+          square.classList.add("visited");
+          if (i === currentSteps - 1) {
+            square.classList.add("current");
+          }
+        }
+      }
+
+      function updateMoveList() {
+        const path = getActivePath();
+        moveList.innerHTML = "";
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < currentSteps; i += 1) {
+          const move = path[i];
+          const item = document.createElement("li");
+          item.textContent = `${String(i + 1).padStart(2, "0")}: ${algebraic(move)}`;
+          fragment.appendChild(item);
+        }
+        moveList.appendChild(fragment);
+      }
+
+      function updateStepControls() {
+        stepRange.value = String(currentSteps);
+        stepCount.textContent = String(currentSteps);
+        stepBackButton.disabled = currentSteps <= 0;
+        stepForwardButton.disabled = currentSteps >= BOARD_SIZE * BOARD_SIZE;
+      }
+
+      function getActivePath() {
+        return useReverse ? reverseTour : forwardTour;
+      }
+
+      function setSteps(nextSteps) {
+        const maxSteps = BOARD_SIZE * BOARD_SIZE;
+        currentSteps = Math.min(Math.max(nextSteps, 0), maxSteps);
+        updateStepControls();
+        updateBoard();
+        updateMoveList();
+      }
+
+      function handleDirectionChange(event) {
+        useReverse = event.target.value === "reverse";
+        const totalSteps = BOARD_SIZE * BOARD_SIZE;
+        stepTotal.textContent = String(totalSteps);
+        if (currentSteps === 0) {
+          setSteps(0);
+        } else {
+          updateBoard();
+          updateMoveList();
+        }
+        if (quizActive) {
+          endQuizSession("Direction changed. Quiz cancelled.");
+        }
+      }
+
+      function startQuiz() {
+        quizActive = true;
+        quizIndex = 0;
+        quizScore = 0;
+        quizPanel.hidden = false;
+        quizLog.innerHTML = "";
+        quizPrompt.textContent = "Move 01: enter the target square.";
+        quizAnswer.disabled = false;
+        quizAnswer.value = "";
+        quizAnswer.focus();
+        setSteps(0);
+      }
+
+      function endQuizSession(message) {
+        quizActive = false;
+        quizPanel.hidden = false;
+        quizPrompt.textContent = `${message} Final score: ${quizScore}`;
+        quizAnswer.value = "";
+        quizAnswer.disabled = true;
+      }
+
+      function appendQuizLog(message) {
+        const entry = document.createElement("p");
+        entry.textContent = message;
+        quizLog.prepend(entry);
+      }
+
+      function handleQuizSubmit(event) {
+        event.preventDefault();
+        if (!quizActive) {
+          return;
+        }
+
+        const value = quizAnswer.value.trim().toLowerCase();
+        if (!value) {
+          return;
+        }
+
+        if (value === "quit") {
+          endQuizSession("Quiz ended early.");
+          return;
+        }
+
+        const path = getActivePath();
+        const move = path[quizIndex];
+        const expected = algebraic(move);
+
+        if (value === expected) {
+          quizScore += 1;
+          appendQuizLog(`✓ Move ${String(quizIndex + 1).padStart(2, "0")}: ${value} (correct)`);
+        } else {
+          appendQuizLog(
+            `✗ Move ${String(quizIndex + 1).padStart(2, "0")}: you answered ${value}, expected ${expected}`
+          );
+        }
+
+        quizIndex += 1;
+        quizAnswer.value = "";
+        setSteps(quizIndex);
+
+        if (quizIndex >= path.length) {
+          endQuizSession("Tour completed!");
+        } else {
+          quizPrompt.textContent = `Move ${String(quizIndex + 1).padStart(2, "0")}: enter the target square.`;
+          quizAnswer.focus();
+        }
+      }
+
+      function initialise() {
+        forwardTour = generateTour(START);
+        reverseTour = [...forwardTour].reverse();
+        stepTotal.textContent = String(BOARD_SIZE * BOARD_SIZE);
+        createBoard();
+        setSteps(0);
+      }
+
+      initialise();
+
+      document.querySelectorAll('input[name="direction"]').forEach((input) => {
+        input.addEventListener("change", handleDirectionChange);
+      });
+
+      stepRange.addEventListener("input", (event) => {
+        setSteps(Number(event.target.value));
+      });
+
+      stepBackButton.addEventListener("click", () => {
+        setSteps(currentSteps - 1);
+      });
+
+      stepForwardButton.addEventListener("click", () => {
+        setSteps(currentSteps + 1);
+      });
+
+      startQuizButton.addEventListener("click", () => {
+        startQuiz();
+      });
+
+      endQuizButton.addEventListener("click", () => {
+        if (quizActive) {
+          endQuizSession("Quiz finished by learner.");
+        }
+      });
+
+      quizForm.addEventListener("submit", handleQuizSubmit);
+    </script>
+  </body>
+</html>
