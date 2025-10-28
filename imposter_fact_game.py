@@ -1,11 +1,11 @@
-"""Word association party game centred on real and improvised facts.
+"""Word association party game centred on real and improvised prompts.
 
 This module implements a social deduction game inspired by "The Imposter".
-Each round all players but one receive a humorous, real-world fact that is
-linked to a shared topic.  The remaining player is the imposter: they must
-invent a convincing fact on the fly and bluff their way through the group
-discussion.  The same generation logic powers the browser version provided in
-``imposter_fact_game.html``.
+Each round all players but one receive a humorous, real-world fact or playful
+challenge that is linked to a shared topic.  The remaining player is the
+imposter: they must invent a convincing story on the fly and bluff their way
+through the group discussion.  The same generation logic powers the browser
+version provided in ``imposter_fact_game.html``.
 
 Running the module directly starts an interactive command-line experience that
 walks players through a full round.  The :func:`generate_round` function drives
@@ -22,9 +22,9 @@ from dataclasses import dataclass
 from typing import Iterable, List, Sequence
 
 
-# A curated selection of topics and their related facts.  Keep this in sync with
-# the ``FACT_SETS`` constant in ``imposter_fact_game.js`` so the browser host and
-# CLI host share the same trivia.
+# A curated selection of topics and their related prompts.  Keep this in sync
+# with the ``FACT_SETS`` constant in ``imposter_fact_game.js`` so the browser
+# host and CLI host share the same material.
 FACT_SETS: dict[str, tuple[str, ...]] = {
     "space": (
         "A day on Venus is longer than an entire Venusian year because the planet"
@@ -74,6 +74,24 @@ FACT_SETS: dict[str, tuple[str, ...]] = {
         "The first alarm clock could only ring at 4 a.m.; the inventor was a man"
         " who had to wake up early for work.",
     ),
+    "tongue_twisters": (
+        "Recite 'Unique New York' five times fast without stumbling.",
+        "Say 'red leather, yellow leather' six times with perfect clarity.",
+        "Deliver 'She sells seashells by the seashore' while keeping eye contact"
+        " with the group.",
+        "Three times quickly, say 'Irish wristwatch' without laughing at"
+        " yourself.",
+    ),
+    "try_not_to_laugh": (
+        "Tell the group your most ridiculous childhood snack combination with a"
+        " perfectly straight face.",
+        "Read this groaner without breaking: 'I used to be a baker, but I couldn't"
+        " make enough dough.'",
+        "Stare down the player to your left and say, 'Serious scientists"
+        " seriously study silly string,' without cracking up.",
+        "Share the silliest animal fact you know, but act like it's a Nobel Prize"
+        " discovery.",
+    ),
 }
 
 
@@ -82,20 +100,20 @@ class PlayerAssignment:
     """Information given to a single player for a round."""
 
     is_imposter: bool
-    fact: str | None
+    prompt: str | None
 
     def display_message(self, topic: str) -> str:
         """Return the text shown to a player during the briefing phase."""
 
         if self.is_imposter:
             return textwrap.fill(
-                "You drew the imposter card! Listen to everyone else's facts,"
+                "You drew the imposter card! Listen to everyone else's stories,"
                 " then invent your own and try to blend in."
             )
-        assert self.fact is not None
+        assert self.prompt is not None
         return textwrap.fill(
-            f"Secret topic: {topic.title()}. Read this real fact aloud when it's"
-            f" your turn: {self.fact}"
+            f"Secret topic: {topic.title()}. Your prompt when the spotlight is on"
+            f" you: {self.prompt}"
         )
 
 
@@ -163,17 +181,17 @@ def generate_round(
     topic, facts = rng.choice(tuple(available_facts.items()))
 
     imposter_index = rng.randrange(num_players)
-    real_fact_count = num_players - 1
-    fact_pool = _sample_facts(facts, real_fact_count, rng)
+    prompt_count = num_players - 1
+    prompt_pool = _sample_facts(facts, prompt_count, rng)
 
     assignments: list[PlayerAssignment] = []
-    fact_iter = iter(fact_pool)
+    prompt_iter = iter(prompt_pool)
     for idx in range(num_players):
         if idx == imposter_index:
-            assignments.append(PlayerAssignment(is_imposter=True, fact=None))
+            assignments.append(PlayerAssignment(is_imposter=True, prompt=None))
         else:
             assignments.append(
-                PlayerAssignment(is_imposter=False, fact=next(fact_iter))
+                PlayerAssignment(is_imposter=False, prompt=next(prompt_iter))
             )
 
     return RoundSetup(
@@ -218,7 +236,7 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Play a social deduction game where only one player must fake their"
-            " fact."
+            " prompt."
         )
     )
     parser.add_argument(
