@@ -56,26 +56,15 @@
       gap: 1rem;
     }
 
-    label,
-    fieldset {
+    label {
       display: grid;
       gap: 0.35rem;
       font-weight: 600;
       color: #3a3551;
-      border: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    legend {
-      font-weight: 600;
-      padding: 0;
     }
 
     input[type="number"],
-    select,
-    textarea,
-    input[type="text"] {
+    select {
       font: inherit;
       padding: 0.7rem 0.85rem;
       border-radius: 12px;
@@ -83,42 +72,6 @@
       background: rgba(255, 255, 255, 0.82);
       color: inherit;
       box-shadow: inset 0 1px 3px rgba(31, 27, 44, 0.08);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 6.5rem;
-    }
-
-    .names-fieldset {
-      gap: 0.75rem;
-    }
-
-    .names-fieldset p {
-      font-weight: 400;
-      margin: 0;
-      color: #5f587a;
-    }
-
-    .names-list {
-      display: grid;
-      gap: 0.5rem;
-    }
-
-    .name-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .name-row button {
-      padding: 0.65rem 1rem;
-    }
-
-    .name-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
     }
 
     button {
@@ -155,11 +108,6 @@
     .secondary:hover {
       border-color: rgba(116, 70, 200, 0.55);
       transform: none;
-    }
-
-    .secondary.compact {
-      padding: 0.65rem 1.1rem;
-      font-size: 0.95rem;
     }
 
     .round-area {
@@ -227,15 +175,6 @@
           Number of players
           <input id="player-count" type="number" min="3" value="5" required />
         </label>
-        <fieldset class="names-fieldset">
-          <legend>Player names</legend>
-          <p>Add names to personalise each hand-off screen. Leave blank to use generic player numbers.</p>
-          <div id="names-list" class="names-list" aria-live="polite"></div>
-          <div class="name-controls">
-            <button id="add-name" type="button" class="secondary compact">Add another player</button>
-            <button id="clear-names" type="button" class="secondary compact">Clear names</button>
-          </div>
-        </fieldset>
         <label>
           Topic
           <select id="topic-choice">
@@ -252,8 +191,8 @@
         <p id="message-text">Choose your player count, then press “Start new round” to begin.</p>
       </div>
       <div class="controls">
-        <button id="reveal-button" type="button" hidden>Press &amp; hold to reveal</button>
-        <button id="next-button" type="button" class="secondary" hidden>Next player</button>
+        <button id="reveal-button" type="button" hidden>Reveal for Player 1</button>
+        <button id="hide-button" type="button" class="secondary" hidden>Hide &amp; pass to next player</button>
         <button id="reset-button" type="button" class="secondary" hidden>Back to setup</button>
       </div>
       <p class="footnote" id="progress-note"></p>

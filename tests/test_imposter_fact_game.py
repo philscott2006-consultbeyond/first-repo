@@ -15,11 +15,11 @@ def test_generate_round_has_single_imposter():
 def test_generate_round_assigns_known_facts():
     rng = random.Random(5)
     setup = ifg.generate_round(6, rng=rng)
-    topic_prompts = set(ifg.FACT_SETS[setup.topic])
+    topic_facts = set(ifg.FACT_SETS[setup.topic])
     for idx, assignment in enumerate(setup.assignments):
         if assignment.is_imposter:
             continue
-        assert assignment.prompt in topic_prompts, f"player {idx} got unknown prompt"
+        assert assignment.fact in topic_facts, f"player {idx} got unknown fact"
 
 
 def test_generate_round_requires_three_players():
