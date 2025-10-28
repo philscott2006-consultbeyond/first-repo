@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fact Imposter Party Game</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(160deg, #f9f7ff 0%, #ffecec 100%);
+      color: #1f1b2c;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .app {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      box-shadow: 0 18px 45px rgba(31, 27, 44, 0.18);
+      max-width: 720px;
+      width: min(720px, 100%);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
+      backdrop-filter: blur(14px);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 3vw, 2.75rem);
+      letter-spacing: -0.01em;
+    }
+
+    .tagline {
+      font-size: 1.05rem;
+      margin-bottom: 2rem;
+      color: #4a4662;
+    }
+
+    .section-title {
+      margin-bottom: 0.75rem;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7c7297;
+    }
+
+    form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.35rem;
+      font-weight: 600;
+      color: #3a3551;
+    }
+
+    input[type="number"],
+    select,
+    textarea {
+      font: inherit;
+      padding: 0.7rem 0.85rem;
+      border-radius: 12px;
+      border: 1px solid rgba(72, 62, 102, 0.2);
+      background: rgba(255, 255, 255, 0.82);
+      color: inherit;
+      box-shadow: inset 0 1px 3px rgba(31, 27, 44, 0.08);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 6.5rem;
+    }
+
+    button {
+      font: inherit;
+      border: none;
+      border-radius: 999px;
+      padding: 0.85rem 1.75rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      color: white;
+      background: linear-gradient(135deg, #8c4fff, #ff6ba7);
+      box-shadow: 0 12px 24px rgba(116, 51, 172, 0.25);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(116, 51, 172, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .secondary {
+      background: transparent;
+      color: #7446c8;
+      border: 2px solid rgba(116, 70, 200, 0.35);
+      box-shadow: none;
+    }
+
+    .secondary:hover {
+      border-color: rgba(116, 70, 200, 0.55);
+      transform: none;
+    }
+
+    .round-area {
+      margin-top: 2.5rem;
+      display: none;
+      gap: 1.5rem;
+    }
+
+    .round-area.active {
+      display: grid;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: inset 0 0 0 1px rgba(51, 36, 73, 0.08);
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+
+    .topic-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(140, 79, 255, 0.1);
+      color: #5b2ab6;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .footnote {
+      font-size: 0.9rem;
+      color: #5f587a;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 2rem 1.25rem 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" role="main">
+    <header>
+      <h1>Fact Imposter</h1>
+      <p class="tagline">Pass one device around the table and see who can sneak a made-up fact past everyone else.</p>
+    </header>
+
+    <section>
+      <h2 class="section-title">Set up a round</h2>
+      <form id="setup-form">
+        <label>
+          Number of players
+          <input id="player-count" type="number" min="3" value="5" required />
+        </label>
+        <label>
+          Player names (optional)
+          <textarea
+            id="player-names"
+            rows="3"
+            placeholder="Add each player on a new line to personalise the briefings"
+          ></textarea>
+        </label>
+        <label>
+          Topic
+          <select id="topic-choice">
+            <option value="random">Surprise me</option>
+          </select>
+        </label>
+        <button type="submit">Start new round</button>
+      </form>
+    </section>
+
+    <section id="round-area" class="round-area" aria-live="polite">
+      <div class="topic-pill" id="topic-pill" hidden></div>
+      <div class="card" id="message-card">
+        <p id="message-text">Choose your player count, then press “Start new round” to begin.</p>
+      </div>
+      <div class="controls">
+        <button id="reveal-button" type="button" hidden>Press &amp; hold to reveal</button>
+        <button id="next-button" type="button" class="secondary" hidden>Next player</button>
+        <button id="reset-button" type="button" class="secondary" hidden>Back to setup</button>
+      </div>
+      <p class="footnote" id="progress-note"></p>
+    </section>
+  </main>
+  <script src="imposter_fact_game.js"></script>
+</body>
+</html>
